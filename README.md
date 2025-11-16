@@ -79,3 +79,79 @@ AI/医療データ分析で必須となる「データ前処理」の基礎を�
 - 型変換 → 欠損処理 → 特徴量作成 → 集計 → 可視化  
 - 医療データに必要な「解析可能な構造」への変換
 - Notebook の構成方法（処理の順序整理）
+
+## Day4：EDA（探索的データ分析）
+
+### 目的
+前処理済みデータを用いて、
+「flag（異常/正常）をどの特徴量が説明するのか」を読み解く。
+AI モデル構築の前段階として、分布・相関・傾向を明確に把握する。
+
+---
+
+### 実施内容
+
+#### 1. 基本統計量の確認
+- `df.describe()` で value / age の分布を把握  
+- 平均値、標準偏差、四分位点を確認  
+- value が高齢層で高くなる傾向を確認
+
+#### 2. 相関の確認
+- `df.corr()` で特徴量同士の相関を確認  
+- value と flag の間に差がある可能性を確認  
+- high_risk と flag の関係にも注目
+
+#### 3. 箱ひげ図（value の外れ値可視化）
+- `df.boxplot(column="value")`  
+- 外れ値・分布の偏りを視覚的に確認
+
+#### 4. age_group × value 解析
+- `df.boxplot(column="value", by="age_group")`  
+- young / middle / senior の分布比較  
+- senior が最も中央値が高い  
+- middle の IQR（バラつき）が最も広い  
+- 年齢が上がるほど value が上昇する傾向を確認
+
+#### 5. flag（診断ラベル）との関係性
+- `df.groupby("flag")["value"].mean()`  
+  - flag=0 → 約5.48  
+  - flag=1 → 約7.56  
+  → value は flag を強く説明できる特徴量
+
+#### 6. high_risk × flag のクロス集計
+- `df.groupby(["flag", "high_risk"]).size()`  
+  - high_risk=1 の 52% が flag=1  
+  → high_risk も flag を説明する有効な特徴量
+
+---
+
+### 得られた洞察（重要点）
+
+- **value は flag（異常/正常）を強く説明する**  
+  → 平均値に明確な差があるため、分類モデルの主軸になりうる。
+
+- **high_risk は flag と強く関連する**  
+  → 閾値による特徴量化が有効に機能している。
+
+- **age_group によって value の分布が異なる**  
+  → 年齢も flag に寄与する可能性があるため、特徴量として使う価値がある。
+
+- **EDA の結果、flag（目的変数）を  
+  value / high_risk / age で予測できる構造が明確に存在する。**
+
+---
+
+### Day4 で構築したもの
+- `day4_eda.ipynb`（Notebook）
+- value / age / flag / high_risk / age_group の分布理解
+- 機械学習（Day5）に必要な特徴量・データ構造を確定
+- GitHub で EDA ログとして公開可能なレポート形式
+
+---
+
+### 次のステップ（Day5）
+- X（特徴量）と y（目的変数）の準備  
+- train/test 分割  
+- ランダムフォレスト or ロジスティック回帰による分類モデル作成  
+- 精度（accuracy, ROC-AUC）の評価  
+- GitHub への成果の追加

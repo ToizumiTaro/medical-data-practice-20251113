@@ -147,7 +147,48 @@ AI モデル構築の前段階として、分布・相関・傾向を明確に�
 - 機械学習（Day5）に必要な特徴量・データ構造を確定
 - GitHub で EDA ログとして公開可能なレポート形式
 
----
+## Day5：初回モデル構築（RandomForest による二値分類）
+
+### 目的
+Day1〜4 で前処理・EDA まで行ったデータを用いて、
+`flag`（0=正常, 1=異常）を予測する機械学習モデルを一通り構築し、
+「前処理 → 特徴量設計 → 学習 → 評価」の流れを自分で回せる状態にする。
+
+### 実施内容
+
+1. 前処理の再現
+   - `sample_day2.csv` の読み込み
+   - 型変換：`age`, `value`, `flag`, `patient_id` を数値型へ変換
+   - `date` を `datetime` 型へ変換
+   - 欠損行を削除
+   - 特徴量作成：
+     - `age_group`（young / middle / senior）
+     - `high_risk`（`value > 7.5` を 1 とするフラグ）
+
+2. 特徴量・目的変数の定義
+   - **目的変数（y）**：`flag`（診断ラベル：0=正常 / 1=異常）
+   - **特徴量（X）**：
+     - `age`
+     - `value`
+     - `high_risk`
+     - `age_group`（`get_dummies(drop_first=True)` でダミー変数化）
+
+3. 学習・評価フローの実装
+   - `train_test_split(test_size=0.2, stratify=y, random_state=42)` による train/test 分割
+   - `RandomForestClassifier(n_estimators=100, random_state=42)` で学習
+   - `accuracy_score` と `roc_auc_score` による性能評価
+
+4. 評価結果（今回のデータ）
+   - **Accuracy: 0.950**
+   - **AUC: 1.000**
+   - → この簡易データセットでは、`value` / `age` / `high_risk` / `age_group` から
+     `flag` をほぼ完全に判別できる構造があることを確認。
+
+### 学んだポイント
+- 目的変数（`flag`）と特徴量（`age`, `value`, `high_risk`, `age_group`）を明確に分けて設計する重要性
+- 前処理・特徴量設計を Notebook 内で完結させてからモデルに渡す流れ
+- accuracy と AUC の両方でモデルを評価する基本パターン
+- 小規模・単純なデータでは高いスコアが出やすく、過信せず「構造が単純だから」と理解しておくこと
 
 ### 次のステップ（Day5）
 - X（特徴量）と y（目的変数）の準備  

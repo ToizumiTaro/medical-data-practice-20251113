@@ -190,6 +190,46 @@ Day1〜4 で前処理・EDA まで行ったデータを用いて、
 - accuracy と AUC の両方でモデルを評価する基本パターン
 - 小規模・単純なデータでは高いスコアが出やすく、過信せず「構造が単純だから」と理解しておくこと
 
+## Day6：モデル解釈と評価・閾値調整
+
+### 目的
+Day5 で構築した RandomForest モデルに対して、
+「どの特徴量がどれだけ効いているか」「どこで誤判定しているか」を分析し、
+医療データにおけるモデル評価・改善の基本パターンを身につける。
+
+---
+
+### 実施内容
+
+#### 1. 特徴量重要度（Feature Importance）の可視化
+- `model.feature_importances_` と `X.columns` から DataFrame を作成
+- 横棒グラフ（barh）で可視化
+- value / high_risk / age / age_group_* のどれが支配的かを確認
+- 結果として、value 周辺の特徴量が支配的であることを確認
+
+#### 2. 混同行列（Confusion Matrix）の取得
+- `confusion_matrix(y_test, y_pred)` で 2×2 行列を確認
+- 例：`[[10, 0], [1, 9]]`
+  - TN=10, FP=0, FN=1, TP=9
+- 異常患者の見逃し（FN）が 1 件存在することを認識
+
+#### 3. Precision / Recall / F1 の計算
+- `precision_score`, `recall_score`, `f1_score` を計算
+  - Precision: 1.0
+  - Recall: 0.9
+  - F1: 約0.947
+- 医療文脈では特に **Recall（異常患者の見逃しをどれだけ減らせるか）** が重要であることを再確認
+
+#### 4. ROC 曲線と AUC
+- `roc_curve(y_test, y_prob)` で FPR, TPR, 閾値を取得
+- ROC 曲線をプロットし、AUC が 1.0 に近いことを確認
+- 異常と正常のスコア分布がほぼ完全に分離している“おもちゃデータ”であると理解
+
+#### 5. 閾値調整（Threshold Tuning）
+- デフォルトの閾値 0.5 の代わりに、
+  `threshold = 0.3` として再分類：
+  ```python
+  y_pred_adj = (y_prob > 0.3).astype(int)
 ### 次のステップ（Day5）
 - X（特徴量）と y（目的変数）の準備  
 - train/test 分割  
